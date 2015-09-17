@@ -108,3 +108,33 @@ func (s *pacparserTestSuite) TestGood1() {
 	s.NotEmpty(pxy)
 	s.Nil(pp.LastError())
 }
+
+// benchmark parse
+func BenchmarkParse(b *testing.B) {
+	ts := new(pacparserTestSuite)
+	ts.SetupSuite()
+	pp := New(string(ts.pacFiles["good1.pac"]))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ok := pp.Parse()
+		err := pp.LastError()
+		if !ok || err != nil {
+			panic(err.Error())
+		}
+	}
+}
+
+// benchmark find
+func BenchmarkFind(b *testing.B) {
+	ts := new(pacparserTestSuite)
+	ts.SetupSuite()
+	pp := New(string(ts.pacFiles["good1.pac"]))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ok, pxy := pp.FindProxy("http://www.google.com/", "www.google.com")
+		err := pp.LastError()
+		if !ok || pxy == "" || err != nil {
+			panic(err.Error())
+		}
+	}
+}
