@@ -39,7 +39,7 @@ type ParserInstance struct {
 }
 
 // parser response
-type ParserResponse struct {
+type parserResponse struct {
 	status bool   // translated error from pacparser
 	proxy  string // response from FindProxyForURL
 	err    error  // last request error
@@ -48,7 +48,7 @@ type ParserResponse struct {
 // parse request
 type parsePacRequest struct {
 	inst *ParserInstance
-	resp chan *ParserResponse
+	resp chan *parserResponse
 }
 
 // find proxy request
@@ -56,12 +56,16 @@ type findProxyRequest struct {
 	inst *ParserInstance
 	url  string // url argument to FindProxyForURL
 	host string // host argument to FindProxyForURL
-	resp chan *ParserResponse
+	resp chan *parserResponse
 }
 
-// package globals
+// package channels
 var parsePacChannel chan *parsePacRequest
 var findProxyChannel chan *findProxyRequest
+
+// package errors
+var InvalidProxyReturn = errors.New("Invalid proxy return value")
+var InvalidURL = errors.New("Invalid URL")
 
 // process upstream error responses
 func getLastError() error {
@@ -97,7 +101,7 @@ func parseHandler() {
 		// handle parse requests
 		case req := <-parsePacChannel:
 			// build response
-			resp := new(ParserResponse)
+			resp := new(parserResponse)
 			// parse pac contents and set error
 			// upstream function returns 1 on success and 0 on failure
 			resp.status = (int(C.pacparser_parse_pac_string(C.CString(req.inst.pac))) != 0)
@@ -108,7 +112,7 @@ func parseHandler() {
 		// handle find requests
 		case req := <-findProxyChannel:
 			// build response
-			resp := new(ParserResponse)
+			resp := new(parserResponse)
 			// parse pac contents to ensure we are using the right body
 			// upstream function returns 1 on success and 0 on failure
 			resp.status = (int(C.pacparser_parse_pac_string(C.CString(req.inst.pac))) != 0)
@@ -120,6 +124,11 @@ func parseHandler() {
 				resp.proxy = C.GoString(C.pacparser_find_proxy(C.CString(req.url), C.CString(req.host)))
 				// set error
 				resp.err = getLastError()
+				// check proxy
+				if resp.proxy == "undefined" || resp.proxy == "" {
+					resp.status = false
+					resp.err = InvalidProxyReturn
+				}
 			}
 			// send response
 			req.resp <- resp

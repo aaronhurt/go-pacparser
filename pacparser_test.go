@@ -14,13 +14,13 @@ import (
 type pacparserTestSuite struct {
 	suite.Suite
 	basePath string
-	pacFiles map[string][]byte
+	pacFiles map[string]string
 }
 
 // get test pacfiles
-func (s *pacparserTestSuite) readFiles(fpath string) map[string][]byte {
+func (s *pacparserTestSuite) readFiles(fpath string) map[string]string {
 	fullpath := path.Join(s.basePath, fpath) // path to test files
-	retVal := make(map[string][]byte)        // return map of file names and content
+	fileMap := make(map[string]string)       // return map of file names and content
 	// read all files and check error
 	files, err := ioutil.ReadDir(fullpath)
 	if err != nil {
@@ -32,10 +32,10 @@ func (s *pacparserTestSuite) readFiles(fpath string) map[string][]byte {
 		if err != nil {
 			panic(err.Error())
 		}
-		retVal[file.Name()] = contents
+		fileMap[file.Name()] = string(contents)
 	}
 	// return file list
-	return retVal
+	return fileMap
 }
 
 // initiate test suite
@@ -46,7 +46,7 @@ func (s *pacparserTestSuite) SetupSuite() {
 		panic(err.Error())
 	}
 	// read files
-	s.pacFiles = s.readFiles("test_files")
+	s.pacFiles = s.readFiles("test")
 }
 
 // run tests
@@ -57,9 +57,9 @@ func TestSuite(t *testing.T) {
 
 // bad pacfile test
 func (s *pacparserTestSuite) TestBad1() {
-	pp := New(string(s.pacFiles["bad1.pac"]))
+	pp := New(s.pacFiles["bad1.pac"])
 	s.False(pp.Parse())
-	ok, pxy := pp.FindProxy("http://www.google.com/", "www.google.com")
+	ok, pxy := pp.FindProxy("http://www.google.com/")
 	s.T().Logf("ok: %t, pxy: %s", ok, pxy)
 	s.False(ok)
 	s.Empty(pxy)
@@ -70,12 +70,12 @@ func (s *pacparserTestSuite) TestBad1() {
 
 // bad pacfile test
 func (s *pacparserTestSuite) TestBad2() {
-	pp := New(string(s.pacFiles["bad2.pac"]))
-	s.False(pp.Parse())
-	ok, pxy := pp.FindProxy("http://www.google.com/", "www.google.com")
+	pp := New(s.pacFiles["bad2.pac"])
+	s.True(pp.Parse())
+	ok, pxy := pp.FindProxy("http://www.google.com/")
 	s.T().Logf("ok: %t, pxy: %s", ok, pxy)
 	s.False(ok)
-	s.Empty(pxy)
+	s.Equal("undefined", pxy)
 	lastError := pp.LastError()
 	s.T().Logf("lastError: %s", lastError)
 	s.NotNil(lastError)
@@ -85,25 +85,25 @@ func (s *pacparserTestSuite) TestBad2() {
 func (s *pacparserTestSuite) TestGood1() {
 	var ok bool    // status return
 	var pxy string // proxy line
-	pp := New(string(s.pacFiles["good1.pac"]))
+	pp := New(s.pacFiles["good1.pac"])
 	s.True(pp.Parse())
-	ok, pxy = pp.FindProxy("http://www.google.com/", "www.google.com")
-	s.T().Logf("http://www.google.com/, www.google.com -> %s", pxy)
+	ok, pxy = pp.FindProxy("http://www.google.com/")
+	s.T().Logf("http://www.google.com/ -> %s", pxy)
 	s.True(ok)
 	s.NotEmpty(pxy)
 	s.Nil(pp.LastError())
-	ok, pxy = pp.FindProxy("http://test.local/", "test.local")
-	s.T().Logf("http://test.local/, test.local -> %s", pxy)
+	ok, pxy = pp.FindProxy("http://test.local/")
+	s.T().Logf("http://test.local/ -> %s", pxy)
 	s.True(ok)
 	s.NotEmpty(pxy)
 	s.Nil(pp.LastError())
-	ok, pxy = pp.FindProxy("http://localhost/", "localhost")
-	s.T().Logf("http://localhost/, localhost -> %s", pxy)
+	ok, pxy = pp.FindProxy("http://localhost/")
+	s.T().Logf("http://localhost/ -> %s", pxy)
 	s.True(ok)
 	s.NotEmpty(pxy)
 	s.Nil(pp.LastError())
-	ok, pxy = pp.FindProxy("http://www.abcdomain.com/", "www.abcdomain.com")
-	s.T().Logf("http://www.abcdomain.com/, www.abcdomain.com -> %s", pxy)
+	ok, pxy = pp.FindProxy("http://www.abcdomain.com/")
+	s.T().Logf("http://www.abcdomain.com/ -> %s", pxy)
 	s.True(ok)
 	s.NotEmpty(pxy)
 	s.Nil(pp.LastError())
@@ -113,7 +113,7 @@ func (s *pacparserTestSuite) TestGood1() {
 func BenchmarkParse(b *testing.B) {
 	ts := new(pacparserTestSuite)
 	ts.SetupSuite()
-	pp := New(string(ts.pacFiles["good1.pac"]))
+	pp := New(ts.pacFiles["good1.pac"])
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		ok := pp.Parse()
@@ -128,10 +128,10 @@ func BenchmarkParse(b *testing.B) {
 func BenchmarkFind(b *testing.B) {
 	ts := new(pacparserTestSuite)
 	ts.SetupSuite()
-	pp := New(string(ts.pacFiles["good1.pac"]))
+	pp := New(ts.pacFiles["good1.pac"])
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		ok, pxy := pp.FindProxy("http://www.google.com/", "www.google.com")
+		ok, pxy := pp.FindProxy("http://www.google.com/")
 		err := pp.LastError()
 		if !ok || pxy == "" || err != nil {
 			panic(err.Error())

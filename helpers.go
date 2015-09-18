@@ -2,9 +2,10 @@ package pacparser
 
 // go-pacparser - golang bindings for pacparser library
 
-// test payloads for pac validation
+import "net/url"
+
+// test url for pac validation
 const TestURL = "http://www.google.com/"
-const TestHost = "www.google.com"
 
 // create a new pacparser instance
 func New(pac string) *ParserInstance {
@@ -21,7 +22,7 @@ func (inst *ParserInstance) Parse() bool {
 	// build and populate request
 	req := new(parsePacRequest)
 	req.inst = inst
-	req.resp = make(chan *ParserResponse, 1)
+	req.resp = make(chan *parserResponse, 1)
 	// send request
 	parsePacChannel <- req
 	// wait for response
@@ -33,13 +34,20 @@ func (inst *ParserInstance) Parse() bool {
 }
 
 // find proxy for given arguments
-func (inst *ParserInstance) FindProxy(url, host string) (bool, string) {
+func (inst *ParserInstance) FindProxy(urlString string) (bool, string) {
+	// parse host from url
+	u, err := url.Parse(urlString)
+	// check err
+	if err != nil {
+		inst.err = InvalidURL
+		return false, ""
+	}
 	// build and populate request
 	req := new(findProxyRequest)
 	req.inst = inst
-	req.url = url
-	req.host = host
-	req.resp = make(chan *ParserResponse, 1)
+	req.url = u.String()
+	req.host = u.Host
+	req.resp = make(chan *parserResponse, 1)
 	// send request
 	findProxyChannel <- req
 	// wait for response
@@ -62,9 +70,9 @@ func (inst *ParserInstance) IsValid() bool {
 		return false
 	}
 	// evaluate function
-	ok, pxy := inst.FindProxy(TestURL, TestHost)
-	// check values
-	if !ok || pxy == "" {
+	ok, _ := inst.FindProxy(TestURL)
+	// check return
+	if !ok {
 		return false
 	}
 	// default return
