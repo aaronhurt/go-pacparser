@@ -97,34 +97,46 @@ func (s *pacparserTestSuite) TestGood() {
 	pp := New(s.pacFiles["good1.pac"])
 	// assert on parse
 	s.True(pp.Parse())
+	// set client ip
+	pp.SetMyIp("10.10.5.6")
 	// exectute FindProxyForURL and log
 	ok, pxy = pp.FindProxy("http://www.google.com/")
 	s.T().Logf("http://www.google.com/ -> %s", pxy)
 	// assert returns
 	s.True(ok)
-	s.NotEmpty(pxy)
+	s.Equal("PROXY 1.2.3.4:8080", pxy)
+	s.Nil(pp.LastError())
+	// reset the instance
+	pp.Reset()
+	// exectute FindProxyForURL and log
+	ok, pxy = pp.FindProxy("http://www.google.com/")
+	s.T().Logf("http://www.google.com/ -> %s", pxy)
+	// assert returns
+	s.True(ok)
+	s.Equal("PROXY 4.5.6.7:8080; PROXY 7.8.9.10:8080", pxy)
 	s.Nil(pp.LastError())
 	// exectute FindProxyForURL and log
 	ok, pxy = pp.FindProxy("http://test.local/")
 	s.T().Logf("http://test.local/ -> %s", pxy)
 	// assert returns
 	s.True(ok)
-	s.NotEmpty(pxy)
+	s.Equal("DIRECT", pxy)
 	s.Nil(pp.LastError())
 	// exectute FindProxyForURL and log
 	ok, pxy = pp.FindProxy("http://localhost/")
 	s.T().Logf("http://localhost/ -> %s", pxy)
 	// assert returns
 	s.True(ok)
-	s.NotEmpty(pxy)
+	s.Equal("DIRECT", pxy)
 	s.Nil(pp.LastError())
 	// exectute FindProxyForURL and log
 	ok, pxy = pp.FindProxy("http://www.abcdomain.com/")
 	s.T().Logf("http://www.abcdomain.com/ -> %s", pxy)
 	// assert returns
 	s.True(ok)
-	s.NotEmpty(pxy)
+	s.Equal("DIRECT", pxy)
 	s.Nil(pp.LastError())
+
 }
 
 // test with IsValid

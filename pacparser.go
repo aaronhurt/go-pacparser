@@ -2,6 +2,13 @@ package pacparser
 
 // go-pacparser - golang bindings for pacparser library
 
+import (
+	"errors"
+	"net"
+	"os"
+	"strings"
+)
+
 // #cgo LDFLAGS: -lpacparser
 // #include <stdarg.h>
 // #include <stdio.h>
@@ -27,8 +34,6 @@ package pacparser
 // }
 //
 import "C"
-import "errors"
-import "strings"
 
 // Maximum pending requests
 const MaxConcurrency = 100
@@ -36,8 +41,9 @@ const MaxConcurrency = 100
 // Core package instance that stores information
 // for all functions contained within the package
 type ParserInstance struct {
-	pac string // pac file body
-	err error  // last instance error
+	pac  string // pac file body
+	myip string // returned by myIpAddress() javascript function
+	err  error  // last instance error
 }
 
 // Unexported common response struct
@@ -61,15 +67,14 @@ type findProxyRequest struct {
 	resp chan *parserResponse
 }
 
-// Unexported package channels
 var parsePacChannel chan *parsePacRequest
 var findProxyChannel chan *findProxyRequest
 
-// Error returned when FindProxy fails
 var InvalidProxyReturn = errors.New("Invalid proxy return value")
-
-// Error returned when we fail to parse the passed URL string
+var InvalidIP = errors.New("Invalid IP")
 var InvalidURL = errors.New("Invalid URL")
+
+var myIpDefault string
 
 // Process upstream error responses
 func getLastError() error {
@@ -124,6 +129,8 @@ func parseHandler() {
 			resp.err = getLastError()
 			// check response
 			if resp.status {
+				// set ip
+				C.pacparser_setmyip((C.CString(req.inst.myip)))
 				// find proxy
 				resp.proxy = C.GoString(C.pacparser_find_proxy(C.CString(req.url), C.CString(req.host)))
 				// set error
@@ -144,12 +151,27 @@ func parseHandler() {
 func init() {
 	// initialize pacparser library
 	C.pacparser_init()
+	// deprecated function in newer library versions
+	// and simply returns without taking any action
 	C.pacparser_enable_microsoft_extensions()
 	// set error handler
 	C.pacparser_set_error_printer(C.pacparser_error_printer(C.bufferErrors))
 	// build channels
 	parsePacChannel = make(chan *parsePacRequest, 100)
 	findProxyChannel = make(chan *findProxyRequest, 100)
+	// set default ip
+	myIpDefault = "127.0.0.1"
+	// attempt to find local ip address
+	if host, err := os.Hostname(); err != nil {
+		if addrs, err := net.LookupIP(host); err != nil {
+			for _, addr := range addrs {
+				if !addr.IsLoopback() {
+					// set default ip address
+					myIpDefault = addr.String()
+				}
+			}
+		}
+	}
 	// spawn handler
 	go parseHandler()
 }

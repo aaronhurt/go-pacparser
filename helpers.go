@@ -2,7 +2,10 @@ package pacparser
 
 // go-pacparser - golang bindings for pacparser library
 
-import "net/url"
+import (
+	"net"
+	"net/url"
+)
 
 // Test URL used by IsValid()
 const TestURL = "http://www.google.com/"
@@ -13,7 +16,9 @@ func New(pac string) *ParserInstance {
 	inst := new(ParserInstance)
 	// populate elements
 	inst.pac = pac
-	// return
+	// set IP address to package default
+	inst.myip = myIpDefault
+	// return the instance
 	return inst
 }
 
@@ -67,6 +72,25 @@ func (inst *ParserInstance) FindProxy(urlString string) (bool, string) {
 // Return the most recent error that occured in the instance.
 func (inst *ParserInstance) LastError() error {
 	return inst.err
+}
+
+// Set the IP address returned by the myIpAddress() javascript function
+// when processing PAC scripts.  The package attempts to resolve the
+// local system hostname and defaults to "127.0.0.1" if the local
+// hostname is not resolvable.
+func (inst *ParserInstance) SetMyIp(ipString string) error {
+	if ip := net.ParseIP(ipString); ip != nil {
+		inst.myip = ip.String()
+		return nil
+	}
+	// ip didn't parse
+	return InvalidIP
+}
+
+// Reset the instance IP address and error state to the default values.
+func (inst *ParserInstance) Reset() {
+	inst.err = nil
+	inst.myip = myIpDefault
 }
 
 // Shortcut function that combines Parse() and FindProxy() with
