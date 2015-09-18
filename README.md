@@ -17,4 +17,4 @@ go get github.com/leprechau/go-pacparser
 ## Examples
 
 You can find a short example script in the
-(example)[go-pacparser/example] folder in this repository.
+[example](go-pacparser/example) folder in this repository.
