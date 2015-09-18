@@ -24,7 +24,9 @@ func New(pac string) *ParserInstance {
 
 // Parse the PAC body associated with the instance and return true or false.
 // Errors that may occur are stored in the instance and may be retrieved
-// by a call to LastError()
+// by a call to LastError() and should be handled by the client BEFORE
+// calling any additional instance functions that may overwrite the instance
+// error state.
 func (inst *ParserInstance) Parse() bool {
 	// build and populate request
 	req := new(parsePacRequest)
