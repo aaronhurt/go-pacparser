@@ -29,29 +29,29 @@ import "C"
 import "errors"
 import "strings"
 
-// maximum pending requests
+// Maximum pending requests
 const MaxConcurrency = 100
 
-// pacparser instance
+// Core package instance
 type ParserInstance struct {
 	pac string // pac file body
 	err error  // last instance error
 }
 
-// parser response
+// Unexported common response struct
 type parserResponse struct {
 	status bool   // translated error from pacparser
 	proxy  string // response from FindProxyForURL
 	err    error  // last request error
 }
 
-// parse request
+// Unexported parse request struct
 type parsePacRequest struct {
 	inst *ParserInstance
 	resp chan *parserResponse
 }
 
-// find proxy request
+// Unexported findProxy request struct
 type findProxyRequest struct {
 	inst *ParserInstance
 	url  string // url argument to FindProxyForURL
@@ -59,15 +59,15 @@ type findProxyRequest struct {
 	resp chan *parserResponse
 }
 
-// package channels
+// Unexported package channels
 var parsePacChannel chan *parsePacRequest
 var findProxyChannel chan *findProxyRequest
 
-// package errors
+// Package errors
 var InvalidProxyReturn = errors.New("Invalid proxy return value")
 var InvalidURL = errors.New("Invalid URL")
 
-// process upstream error responses
+// Process upstream error responses
 func getLastError() error {
 	var lines []string // error lines
 	// pull and trim upstream error string
@@ -90,7 +90,7 @@ func getLastError() error {
 	return errors.New(strings.Join(lines, " -> "))
 }
 
-// handler to ensure only one active request to the underlying library
+// Handler to ensure only one active request to the underlying library
 func parseHandler() {
 	// cleanup engine on exit
 	defer C.pacparser_cleanup()
@@ -136,7 +136,7 @@ func parseHandler() {
 	}
 }
 
-// initialize base parser libary and start handler
+// Initialize base parser libary and start handler
 func init() {
 	// initialize pacparser library
 	C.pacparser_init()

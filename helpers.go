@@ -4,10 +4,10 @@ package pacparser
 
 import "net/url"
 
-// test url for pac validation
+// Test URL used by IsValid()
 const TestURL = "http://www.google.com/"
 
-// create a new pacparser instance
+// Create a new pacparser instance associated with the passed PAC file contents
 func New(pac string) *ParserInstance {
 	// allocate instance
 	inst := new(ParserInstance)
@@ -17,7 +17,9 @@ func New(pac string) *ParserInstance {
 	return inst
 }
 
-// parse a pac body
+// Parse the PAC body associated with the instance and return true or false.
+// Errors that may occur are stored in the instance and may be retrieved
+// by a call to LastError()
 func (inst *ParserInstance) Parse() bool {
 	// build and populate request
 	req := new(parsePacRequest)
@@ -33,7 +35,11 @@ func (inst *ParserInstance) Parse() bool {
 	return resp.status
 }
 
-// find proxy for given arguments
+// Execute the FindProxyForURL function in the associated PAC body
+// and find the proxy return for the given URL string.  The host portion
+// will be parsed out of the URL passed to the function.  The returned
+// string may be "" or "undefined" in addition to a proper proxy return
+// depending on the contents of the associated PAC body.
 func (inst *ParserInstance) FindProxy(urlString string) (bool, string) {
 	// parse host from url
 	u, err := url.Parse(urlString)
@@ -58,12 +64,13 @@ func (inst *ParserInstance) FindProxy(urlString string) (bool, string) {
 	return resp.status, resp.proxy
 }
 
-// return last error
+// Return the most recent error that occured in the instance.
 func (inst *ParserInstance) LastError() error {
 	return inst.err
 }
 
-// verify a pacfile
+// Shortcut function that combines Parse() and FindProxy() with
+// a test URL to quickly validate PAC syntax and basic functionality.
 func (inst *ParserInstance) IsValid() bool {
 	// parse pacfile and check return
 	if !inst.Parse() {
