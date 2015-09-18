@@ -12,7 +12,8 @@ package pacparser
 // static int  bufferPosition   = 0;
 //
 // int bufferErrors(const char *fmt, va_list argp) {
-//   bufferPosition = vsnprintf(lastError+bufferPosition, sizeof(lastError)-bufferPosition, fmt, argp);
+//   bufferPosition = vsnprintf(lastError+bufferPosition,
+//                    sizeof(lastError)-bufferPosition, fmt, argp);
 //   return bufferPosition;
 // }
 //
