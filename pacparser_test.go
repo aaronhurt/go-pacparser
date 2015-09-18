@@ -93,12 +93,16 @@ func (s *pacparserTestSuite) TestBad() {
 func (s *pacparserTestSuite) TestGood() {
 	var ok bool    // status return
 	var pxy string // proxy line
+	// print default ip
+	s.T().Logf("myIpDefault -> %s", myIpDefault)
 	// init good instance
 	pp := New(s.pacFiles["good1.pac"])
 	// assert on parse
 	s.True(pp.Parse())
 	// set client ip
 	pp.SetMyIp("10.10.5.6")
+	// assert setting
+	s.Equal("10.10.5.6", pp.MyIp())
 	// exectute FindProxyForURL and log
 	ok, pxy = pp.FindProxy("http://www.google.com/")
 	s.T().Logf("http://www.google.com/ -> %s", pxy)
@@ -108,6 +112,8 @@ func (s *pacparserTestSuite) TestGood() {
 	s.Nil(pp.LastError())
 	// reset the instance
 	pp.Reset()
+	// ensure IP was reset
+	s.Equal(myIpDefault, pp.MyIp())
 	// exectute FindProxyForURL and log
 	ok, pxy = pp.FindProxy("http://www.google.com/")
 	s.T().Logf("http://www.google.com/ -> %s", pxy)

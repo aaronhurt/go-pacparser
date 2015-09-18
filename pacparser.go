@@ -168,6 +168,8 @@ func init() {
 				if !addr.IsLoopback() {
 					// set default ip address
 					myIpDefault = addr.String()
+					// break after first valid address
+					break
 				}
 			}
 		}

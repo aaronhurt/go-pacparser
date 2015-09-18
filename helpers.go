@@ -89,6 +89,11 @@ func (inst *ParserInstance) SetMyIp(ipString string) error {
 	return InvalidIP
 }
 
+// Return the IP address used by the instance.
+func (inst *ParserInstance) MyIp() string {
+	return inst.myip
+}
+
 // Reset the instance IP address and error state to the default values.
 func (inst *ParserInstance) Reset() {
 	inst.err = nil
