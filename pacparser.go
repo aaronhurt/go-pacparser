@@ -32,7 +32,8 @@ import "strings"
 // Maximum pending requests
 const MaxConcurrency = 100
 
-// Core package instance
+// Core package instance that stores information
+// for all functions contained within the package
 type ParserInstance struct {
 	pac string // pac file body
 	err error  // last instance error
@@ -63,8 +64,10 @@ type findProxyRequest struct {
 var parsePacChannel chan *parsePacRequest
 var findProxyChannel chan *findProxyRequest
 
-// Package errors
+// Error returned when FindProxy fails
 var InvalidProxyReturn = errors.New("Invalid proxy return value")
+
+// Error returned when we fail to parse the passed URL string
 var InvalidURL = errors.New("Invalid URL")
 
 // Process upstream error responses
