@@ -56,45 +56,41 @@ func TestSuite(t *testing.T) {
 }
 
 // bad pacfile test
-func (s *pacparserTestSuite) TestBad1() {
+func (s *pacparserTestSuite) TestBad() {
 	// load pac bodyand parse
 	pp := New(s.pacFiles["bad1.pac"])
 	// assert on parse
 	s.False(pp.Parse())
 	// execute FindProxyForURL and log
 	ok, pxy := pp.FindProxy("http://www.google.com/")
-	s.T().Logf("ok: %t, pxy: %s", ok, pxy)
+	s.T().Logf("bad1.pac -> ok: %t, pxy: %s", ok, pxy)
 	// assert returns
 	s.False(ok)
 	s.Empty(pxy)
 	// pull error and log
 	lastError := pp.LastError()
-	s.T().Logf("lastError: %s", lastError)
+	s.T().Logf("bad1.pac -> lastError: %s", lastError)
 	// assert on error
 	s.NotNil(lastError)
-}
-
-// bad pacfile test
-func (s *pacparserTestSuite) TestBad2() {
 	// load pac body
-	pp := New(s.pacFiles["bad2.pac"])
+	pp = New(s.pacFiles["bad2.pac"])
 	// assert on parse
 	s.True(pp.Parse())
 	// execute FindProxyForURL and log
-	ok, pxy := pp.FindProxy("http://www.google.com/")
-	s.T().Logf("ok: %t, pxy: %s", ok, pxy)
+	ok, pxy = pp.FindProxy("http://www.google.com/")
+	s.T().Logf("bad2.pac -> ok: %t, pxy: %s", ok, pxy)
 	// assert returns
 	s.False(ok)
 	s.Equal("undefined", pxy)
 	// pull eror and log
-	lastError := pp.LastError()
-	s.T().Logf("lastError: %s", lastError)
+	lastError = pp.LastError()
+	s.T().Logf("bad2.pac ->lastError: %s", lastError)
 	// assert on error
 	s.NotNil(lastError)
 }
 
 // good pacfile
-func (s *pacparserTestSuite) TestGood1() {
+func (s *pacparserTestSuite) TestGood() {
 	var ok bool    // status return
 	var pxy string // proxy line
 	// init good instance
@@ -137,21 +133,21 @@ func (s *pacparserTestSuite) TestValid() {
 	pp := New(s.pacFiles["bad1.pac"])
 	// check validity and log
 	ok := pp.IsValid()
-	s.T().Logf("bad1.pac IsValid: %t", ok)
+	s.T().Logf("bad1.pac -> IsValid(): %t", ok)
 	// assert result
 	s.False(ok)
 	// load pacfile
 	pp = New(s.pacFiles["bad2.pac"])
 	// check validity and log
 	ok = pp.IsValid()
-	s.T().Logf("bad2.pac IsValid: %t", ok)
+	s.T().Logf("bad2.pac -> IsValid(): %t", ok)
 	// assert result
 	s.False(ok)
 	// load pacfile
 	pp = New(s.pacFiles["good1.pac"])
 	// check validity and log
 	ok = pp.IsValid()
-	s.T().Logf("good1.pac IsValid: %t", ok)
+	s.T().Logf("good1.pac -> IsValid(): %t", ok)
 	// assert result
 	s.True(ok)
 }
