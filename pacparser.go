@@ -161,9 +161,11 @@ func init() {
 	findProxyChannel = make(chan *findProxyRequest, 100)
 	// set default ip
 	myIpDefault = "127.0.0.1"
-	// attempt to find local ip address
-	if host, err := os.Hostname(); err != nil {
-		if addrs, err := net.LookupIP(host); err != nil {
+	// attempt to find local hostname
+	if host, err := os.Hostname(); err == nil {
+		// attempt to resolve returned host
+		if addrs, err := net.LookupIP(host); err == nil {
+			// loop over resolved addresses
 			for _, addr := range addrs {
 				if !addr.IsLoopback() {
 					// set default ip address
