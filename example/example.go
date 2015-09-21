@@ -1,3 +1,13 @@
+/*
+Example program using the go-pacparser wrapper package.
+
+This application will parse the test/good1.pac example file and evaluate the
+contained FindProxyForURL function to return the PROXY line for
+http://www.google.com and then exit.
+
+Please view the source for more information.  The code is commented
+and should provide a clear example usage of the package.
+*/
 package main
 
 import (
