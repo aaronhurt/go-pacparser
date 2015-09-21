@@ -17,7 +17,7 @@ the user to store and process instance errors as collected.
 	lastError := pp.LastError()
 	...
 
-Simple usage example.
+For more information please see the usage example code below.
 
 	package main
 
