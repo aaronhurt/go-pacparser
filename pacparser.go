@@ -96,7 +96,7 @@ func getLastError() error {
 		lines = lines[:len(lines)-1]
 	}
 	// rejoin and return as error
-	return errors.New(strings.Join(lines, " -> "))
+	return errors.New(strings.Join(lines, " "))
 }
 
 // Handler to ensure only one active request to the underlying library
