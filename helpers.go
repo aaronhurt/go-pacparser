@@ -7,10 +7,10 @@ import (
 	"net/url"
 )
 
-// Test URL used by IsValid()
+// TestURL used by IsValid()
 const TestURL = "http://www.google.com/"
 
-// Create a new pacparser instance associated with the passed PAC file contents
+// New creates a new pacparser instance associated with the passed PAC file contents
 func New(pac string) *ParserInstance {
 	// allocate instance
 	inst := new(ParserInstance)
@@ -42,7 +42,7 @@ func (inst *ParserInstance) Parse() bool {
 	return resp.status
 }
 
-// Execute the FindProxyForURL function in the associated PAC body
+// FindProxy executes the FindProxyForURL function in the associated PAC body
 // and find the proxy return for the given URL string.  The host portion
 // will be parsed out of the URL passed to the function.  The returned
 // string may be "" or "undefined" in addition to a proper proxy return
@@ -71,12 +71,12 @@ func (inst *ParserInstance) FindProxy(urlString string) (bool, string) {
 	return resp.status, resp.proxy
 }
 
-// Return the most recent error that occured in the instance.
+// LastError returns the most recent error that occured in the instance.
 func (inst *ParserInstance) LastError() error {
 	return inst.err
 }
 
-// Set the IP address returned by the myIpAddress() javascript function
+// SetMyIp sets the IP address returned by the myIpAddress() javascript function
 // when processing PAC scripts.  The package attempts to resolve the
 // local system hostname and defaults to "127.0.0.1" if the local
 // hostname is not resolvable.
@@ -89,7 +89,7 @@ func (inst *ParserInstance) SetMyIp(ipString string) error {
 	return InvalidIP
 }
 
-// Return the IP address used by the instance.
+// MyIp returns the IP address used by the instance.
 func (inst *ParserInstance) MyIp() string {
 	return inst.myip
 }
@@ -100,7 +100,7 @@ func (inst *ParserInstance) Reset() {
 	inst.myip = myIpDefault
 }
 
-// Shortcut function that combines Parse() and FindProxy() with
+// IsValid provides a shortcut that combines Parse() and FindProxy() with
 // a test URL to quickly validate PAC syntax and basic functionality.
 func (inst *ParserInstance) IsValid() bool {
 	// parse pacfile and check return

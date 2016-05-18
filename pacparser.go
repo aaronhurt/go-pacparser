@@ -35,10 +35,10 @@ import (
 //
 import "C"
 
-// Maximum pending requests
+// MaxConcurrency maximum pending requests
 const MaxConcurrency = 100
 
-// Core package instance that stores information
+// ParserInstance is the core package instance that stores information
 // for all functions contained within the package
 type ParserInstance struct {
 	pac  string // pac file body
@@ -70,9 +70,12 @@ type findProxyRequest struct {
 var parsePacChannel chan *parsePacRequest
 var findProxyChannel chan *findProxyRequest
 
-var InvalidProxyReturn = errors.New("Invalid proxy return value")
-var InvalidIP = errors.New("Invalid IP")
-var InvalidURL = errors.New("Invalid URL")
+// Exported errors
+var (
+	InvalidProxyReturn = errors.New("Invalid proxy return value")
+	InvalidIP          = errors.New("Invalid IP")
+	InvalidURL         = errors.New("Invalid URL")
+)
 
 var myIpDefault string
 
