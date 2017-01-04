@@ -19,7 +19,7 @@ import (
 // static int  bufferPosition   = 0;
 //
 // int bufferErrors(const char *fmt, va_list argp) {
-//   bufferPosition = vsnprintf(lastError+bufferPosition,
+//   bufferPosition += vsnprintf(lastError+bufferPosition,
 //                    sizeof(lastError)-bufferPosition, fmt, argp);
 //   return bufferPosition;
 // }
@@ -67,16 +67,9 @@ type findProxyRequest struct {
 	resp chan *parserResponse
 }
 
+// internal variables
 var parsePacChannel chan *parsePacRequest
 var findProxyChannel chan *findProxyRequest
-
-// Exported errors
-var (
-	InvalidProxyReturn = errors.New("Invalid proxy return value")
-	InvalidIP          = errors.New("Invalid IP")
-	InvalidURL         = errors.New("Invalid URL")
-)
-
 var myIpDefault string
 
 // Process upstream error responses
@@ -104,14 +97,16 @@ func getLastError() error {
 
 // Handler to ensure only one active request to the underlying library
 func parseHandler() {
-	// cleanup engine on exit
-	defer C.pacparser_cleanup()
-
 	// event loop
 	for {
 		select {
 		// handle parse requests
 		case req := <-parsePacChannel:
+			// initialize pacparser library context
+			C.pacparser_init()
+			// deprecated function in newer library versions
+			// and simply returns without taking any action
+			C.pacparser_enable_microsoft_extensions()
 			// build response
 			resp := new(parserResponse)
 			// parse pac contents and set error
@@ -119,10 +114,17 @@ func parseHandler() {
 			resp.status = (int(C.pacparser_parse_pac_string(C.CString(req.inst.pac))) != 0)
 			// set error
 			resp.err = getLastError()
+			// cleanup library context
+			C.pacparser_cleanup()
 			// send response
 			req.resp <- resp
 		// handle find requests
 		case req := <-findProxyChannel:
+			// initialize pacparser library context
+			C.pacparser_init()
+			// deprecated function in newer library versions
+			// and simply returns without taking any action
+			C.pacparser_enable_microsoft_extensions()
 			// build response
 			resp := new(parserResponse)
 			// parse pac contents to ensure we are using the right body
@@ -131,19 +133,28 @@ func parseHandler() {
 			// set error
 			resp.err = getLastError()
 			// check response
-			if resp.status {
+			if resp.status && resp.err == nil {
 				// set ip
 				C.pacparser_setmyip((C.CString(req.inst.myip)))
 				// find proxy
 				resp.proxy = C.GoString(C.pacparser_find_proxy(C.CString(req.url), C.CString(req.host)))
 				// set error
 				resp.err = getLastError()
-				// check proxy
-				if resp.proxy == "undefined" || resp.proxy == "" {
+				// workaround for sometimes empty values
+				if resp.proxy == "" {
+					resp.proxy = "undefined"
+				}
+				// handle undefined proxy returns
+				if resp.proxy == "undefined" {
 					resp.status = false
-					resp.err = InvalidProxyReturn
+					// set error if empty
+					if resp.err == nil {
+						resp.err = errors.New("Invalid proxy returned")
+					}
 				}
 			}
+			// cleanup library context
+			C.pacparser_cleanup()
 			// send response
 			req.resp <- resp
 		}
@@ -152,11 +163,6 @@ func parseHandler() {
 
 // Initialize base parser libary and start handler
 func init() {
-	// initialize pacparser library
-	C.pacparser_init()
-	// deprecated function in newer library versions
-	// and simply returns without taking any action
-	C.pacparser_enable_microsoft_extensions()
 	// set error handler
 	C.pacparser_set_error_printer(C.pacparser_error_printer(C.bufferErrors))
 	// build channels

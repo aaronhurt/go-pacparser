@@ -3,6 +3,7 @@ package pacparser
 // go-pacparser - golang bindings for pacparser library
 
 import (
+	"errors"
 	"net"
 	"net/url"
 )
@@ -52,7 +53,7 @@ func (inst *ParserInstance) FindProxy(urlString string) (bool, string) {
 	u, err := url.Parse(urlString)
 	// check err
 	if err != nil {
-		inst.err = InvalidURL
+		inst.err = err
 		return false, ""
 	}
 	// build and populate request
@@ -86,7 +87,7 @@ func (inst *ParserInstance) SetMyIp(ipString string) error {
 		return nil
 	}
 	// ip didn't parse
-	return InvalidIP
+	return errors.New("Invalid IP")
 }
 
 // MyIp returns the IP address used by the instance.
