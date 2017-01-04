@@ -93,8 +93,8 @@ func getLastError() error {
 				l = split[2]
 			}
 		}
-		// append lines
-		lines = append(lines, strings.TrimSpace(l))
+		// append lines and standardize output
+		lines = append(lines, strings.TrimSuffix(strings.TrimSpace(l), "."))
 	}
 	// check length - remove last line
 	if len(lines) > 1 {
