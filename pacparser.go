@@ -85,6 +85,15 @@ func getLastError() error {
 	C.resetLastError()
 	// split upstream message on newline
 	for _, l := range strings.Split(str, "\n") {
+		var split []string // temp split holder
+		// remove library prefixes
+		if strings.HasPrefix(strings.TrimSpace(l), "pacparser.c: ") {
+			split = strings.SplitN(l, ": ", 3)
+			if len(split) == 3 {
+				l = split[2]
+			}
+		}
+		// append lines
 		lines = append(lines, strings.TrimSpace(l))
 	}
 	// check length - remove last line
