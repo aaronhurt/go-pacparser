@@ -6,7 +6,6 @@ import (
 	"errors"
 	"net"
 	"net/url"
-	"strings"
 )
 
 // TestURL used by IsValid()
@@ -61,7 +60,7 @@ func (inst *ParserInstance) FindProxy(urlString string) (bool, string) {
 	req := new(findProxyRequest)
 	req.inst = inst
 	req.url = u.String()
-	req.host = strings.Split(u.Host, ":")[0]
+	req.host = u.Hostname()
 	req.resp = make(chan *parserResponse, 1)
 	// send request
 	findProxyChannel <- req
