@@ -170,7 +170,7 @@ func parseHandler() {
 	}
 }
 
-// Initialize base parser libary and start handler
+// Initialize base parser library and start handler
 func init() {
 	// set error handler
 	C.pacparser_set_error_printer(C.pacparser_error_printer(C.bufferErrors))

@@ -7,7 +7,6 @@ Package functions are called off of a pacparser instance that is instantiated
 with the PAC data that should be used with all other calls from the instance.
 
 	pp := pacparser.New(pacFileString)
-	...
 
 Errors that occur are stored in the instance and should be checked after
 calling any function that may produce an error.  Additional function calls
@@ -15,7 +14,6 @@ can and in many cases will replace the instance error contents.  It is up to
 the user to store and process instance errors as collected.
 
 	lastError := pp.LastError()
-	...
 
 For more information please see the usage example code below.
 

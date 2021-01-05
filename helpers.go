@@ -72,7 +72,7 @@ func (inst *ParserInstance) FindProxy(urlString string) (bool, string) {
 	return resp.status, resp.proxy
 }
 
-// LastError returns the most recent error that occured in the instance.
+// LastError returns the most recent error that occurred in the instance.
 func (inst *ParserInstance) LastError() error {
 	return inst.err
 }
