@@ -3,11 +3,12 @@ package pacparser
 // go-pacparser - golang bindings for pacparser library
 
 import (
-	"github.com/stretchr/testify/suite"
 	"io/ioutil"
 	"os"
 	"path"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
 )
 
 // everything we need to run our tests
@@ -194,6 +195,16 @@ func (s *pacparserTestSuite) TestGood() {
 	s.True(ok)
 	s.Equal("DIRECT", pxy)
 	s.Nil(pp.LastError())
+
+	// exectute FindProxyForURL and log
+	ok, pxy = pp.FindProxy("https://192.168.1.1.xip.io:4433/path")
+	s.T().Logf("[good1.pac] url: https://192.168.1.1.xip.io:4433/path pxy: %s", pxy)
+
+	// assert returns
+	s.True(ok)
+	s.Equal("DIRECT", pxy)
+	s.Nil(pp.LastError())
+
 }
 
 // test with IsValid
