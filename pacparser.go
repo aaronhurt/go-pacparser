@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"unsafe"
 )
 
 // #cgo LDFLAGS: -lpacparser
