@@ -14,7 +14,7 @@ import (
 // #include <stdio.h>
 // #include <strings.h>
 // #include <pacparser.h>
-//
+// #include <stdlib.h>
 // static char lastError[2048]  = "";
 // static int  bufferPosition   = 0;
 //
@@ -120,7 +120,9 @@ func parseHandler() {
 			resp := new(parserResponse)
 			// parse pac contents and set error
 			// upstream function returns 1 on success and 0 on failure
-			resp.status = (int(C.pacparser_parse_pac_string(C.CString(req.inst.pac))) != 0)
+			cstrPac := C.CString(req.inst.pac)
+			resp.status = (int(C.pacparser_parse_pac_string(cstrPac)) != 0)
+			C.free(unsafe.Pointer(cstrPac))
 			// set error
 			resp.err = getLastError()
 			// cleanup library context
@@ -138,15 +140,27 @@ func parseHandler() {
 			resp := new(parserResponse)
 			// parse pac contents to ensure we are using the right body
 			// upstream function returns 1 on success and 0 on failure
-			resp.status = (int(C.pacparser_parse_pac_string(C.CString(req.inst.pac))) != 0)
+			cstrPac := C.CString(req.inst.pac)
+			resp.status = (int(C.pacparser_parse_pac_string(cstrPac)) != 0)
+			C.free(unsafe.Pointer(cstrPac))
+			
 			// set error
 			resp.err = getLastError()
 			// check response
 			if resp.status && resp.err == nil {
 				// set ip
-				C.pacparser_setmyip((C.CString(req.inst.myip)))
+				cstrIP := C.CString(req.inst.myip)
+				C.pacparser_setmyip(cstrIP)
+
 				// find proxy
-				resp.proxy = C.GoString(C.pacparser_find_proxy(C.CString(req.url), C.CString(req.host)))
+				cstrUrl := C.CString(req.url)
+				cstrHost := C.CString(req.host)
+				resp.proxy = C.GoString(C.pacparser_find_proxy(cstrUrl, cstrHost))
+
+				C.free(unsafe.Pointer(cstrIP))
+				C.free(unsafe.Pointer(cstrUrl))
+				C.free(unsafe.Pointer(cstrHost))
+				
 				// set error
 				resp.err = getLastError()
 				// workaround for sometimes empty values
